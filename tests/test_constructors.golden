@@ -1,0 +1,26 @@
+tb_inst.dut23: Waiting 3 nanoseconds
+tb_inst.dut52: Waiting 2 nanoseconds
+tb_inst.dut51: Waiting 1 nanoseconds
+tb_inst.dut51: Done.
+tb_inst.dut51: Waiting 1 nanoseconds
+tb_inst.dut52: Done.
+tb_inst.dut52: Waiting 2 nanoseconds
+tb_inst.dut51: Done.
+tb_inst.dut51: Waiting 1 nanoseconds
+tb_inst.dut23: Done.
+tb_inst.dut23: Waiting 3 nanoseconds
+tb_inst.dut51: Done.
+tb_inst.dut51: Waiting 1 nanoseconds
+tb_inst.dut52: Done.
+tb_inst.dut52: Waiting 2 nanoseconds
+tb_inst.dut51: Done.
+tb_inst.dut51: Waiting 1 nanoseconds
+tb_inst.dut51: Done.
+tb_inst.dut23: Done.
+tb_inst.dut52: Done.
+tb_inst.dut52: Waiting 2 nanoseconds
+tb_inst.dut52: Done.
+tb_inst.dut52: Waiting 2 nanoseconds
+tb_inst.dut52: Done.
+
+Info: /OSCI/SystemC: Simulation stopped by user.

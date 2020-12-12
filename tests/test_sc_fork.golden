@@ -1,0 +1,40 @@
+SC_JOIN_ANY Thread1 start 0 s
+SC_JOIN_ANY Thread2 start 0 s
+SC_JOIN_FIRST Thread1 start 0 s
+SC_JOIN_FIRST Thread2 start 0 s
+SC_JOIN_NONE Thread1 start 0 s
+SC_JOIN_NONE Thread2 start 0 s
+SC_JOIN Thread1 start 0 s
+SC_JOIN Thread2 start 0 s
+SC_CJOIN CThread1 start at 2500 ps
+SC_CJOIN CThread2 start at 2500 ps
+SC_CJOIN_NONE CThread1 start at 2500 ps
+SC_CJOIN_NONE CThread2 start at 2500 ps
+SC_CJOIN_ANY CThread1 start at 2500 ps
+SC_CJOIN_ANY CThread2 start at 2500 ps
+SC_CJOIN_FIRST CThread1 start at 2500 ps
+SC_CJOIN_FIRST CThread2 start at 2500 ps
+SC_CJOIN_FIRST CThread1 end at 5 ns
+SC_CJOIN_ANY CThread1 end at 5 ns
+SC_CJOIN_NONE CThread1 end at 5 ns
+SC_CJOIN CThread1 end at 5 ns
+SC_JOIN_NONE Thread1 end 10 ns
+SC_JOIN Thread1 end 10 ns
+SC_JOIN_ANY Thread1 end 10 ns
+SC_JOIN_FIRST Thread1 end 10 ns
+SC_CJOIN_ANY CThread2 end at 15 ns
+SC_CJOIN CThread2 end at 15 ns
+SC_CJOIN_NONE CThread2 end at 15 ns
+SC_CJOIN CDone at 17500 ps
+SC_JOIN Thread2 end 50 ns
+SC_JOIN_ANY Thread2 end 50 ns
+SC_JOIN_NONE Thread2 end 50 ns
+SC_JOIN Done at 50 ns
+SC_JOIN_NONE Done at 100 ns
+SC_JOIN_FIRST Done at 110 ns
+SC_JOIN_ANY Done at 110 ns
+SC_CJOIN_NONE CDone at 502500 ps
+SC_CJOIN_ANY CDone at 507500 ps
+SC_CJOIN_FIRST CDone at 507500 ps
+
+Info: /OSCI/SystemC: Simulation stopped by user.
