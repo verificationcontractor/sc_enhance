@@ -233,6 +233,14 @@ struct lambda_wrapper {
 #include "sc_thread_process.h"
 namespace sc_core {
 
+struct sc_thread_id_gen {
+  static int id;
+  static std::string get_id() {
+    return std::to_string(id++);
+  }
+};
+int sc_thread_id_gen::id = 0;
+
 class sc_join_any : ::sc_core::sc_join {
   public:
   bool is_finished = false;
@@ -266,6 +274,10 @@ class sc_join_any : ::sc_core::sc_join {
 
 };
 
+sc_core::sc_spawn_options default_spawn_opts;
+
+typedef std::vector<std::function<void(void)> > sc_fork_list;
+
 }
 
 #undef SC_FORK
@@ -286,8 +298,21 @@ class sc_join_any : ::sc_core::sc_join {
   sc_core::sc_spawn_options opts;\
   std::string s = ""; \
   for ( unsigned int i = 0; i < sizeof(forkees)/sizeof(std::function<void(void)>); i++ ) {\
-          s = std::string(basename()) + "_thread_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          s = std::string(basename()) + "_thread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
           sc_process_handle handle = sc_spawn(forkees[i], s.c_str(), &opts); \
+          join.add_process(handle); \
+  } \
+  join.wait(); \
+}
+
+#define SC_FORK_JOIN(LIST) \
+{\
+  sc_core::sc_join           join; \
+  sc_core::sc_spawn_options opts;\
+  std::string s = ""; \
+  for ( unsigned int i = 0; i < (LIST).size(); i++ ) {\
+          s = std::string(basename()) + "_thread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          sc_process_handle handle = sc_spawn((LIST)[i], s.c_str(), &opts); \
           join.add_process(handle); \
   } \
   join.wait(); \
@@ -298,8 +323,21 @@ class sc_join_any : ::sc_core::sc_join {
   sc_core::sc_spawn_options opts;\
   std::string s = ""; \
   for ( unsigned int i = 0; i < sizeof(forkees)/sizeof(std::function<void(void)>); i++ ) {\
-          s = std::string(basename()) + "_thread_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          s = std::string(basename()) + "_thread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
           sc_process_handle handle = sc_spawn(forkees[i], s.c_str(), &opts); \
+          join_any.add_process(handle); \
+  } \
+  join_any.wait(); \
+}
+
+#define SC_FORK_JOIN_ANY(LIST) \
+{\
+  sc_core::sc_join_any           join_any; \
+  sc_core::sc_spawn_options opts;\
+  std::string s = ""; \
+  for ( unsigned int i = 0; i < (LIST).size(); i++ ) {\
+          s = std::string(basename()) + "_thread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          sc_process_handle handle = sc_spawn((LIST)[i], s.c_str(), &opts); \
           join_any.add_process(handle); \
   } \
   join_any.wait(); \
@@ -309,16 +347,36 @@ class sc_join_any : ::sc_core::sc_join {
   sc_core::sc_join_any           join_any; \
   sc_core::sc_spawn_options opts;\
   std::string s = ""; \
-  std::vector<sc_process_handle*> procs; \
+  std::vector<sc_process_handle> procs; \
+  sc_process_handle handle; \
   for ( unsigned int i = 0; i < sizeof(forkees)/sizeof(std::function<void(void)>); i++ ) {\
-          s = std::string(basename()) + "_thread_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
-          sc_process_handle handle = sc_spawn(forkees[i], s.c_str(), &opts); \
+          s = std::string(basename()) + "_thread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          handle = sc_spawn(forkees[i], s.c_str(), &opts); \
           join_any.add_process(handle); \
-          procs.push_back(&handle); \
+          procs.push_back(handle); \
   } \
   join_any.wait(); \
   for ( unsigned int i = 0; i < sizeof(forkees)/sizeof(std::function<void(void)>); i++ ) {\
-          procs[i]->kill(SC_INCLUDE_DESCENDANTS); \
+          procs[i].kill(SC_INCLUDE_DESCENDANTS); \
+  }\
+}
+
+#define SC_FORK_JOIN_FIRST(LIST) \
+{\
+  sc_core::sc_join_any           join_any; \
+  sc_core::sc_spawn_options opts;\
+  std::string s = ""; \
+  std::vector<sc_process_handle> procs; \
+  sc_process_handle handle; \
+  for ( unsigned int i = 0; i < (LIST).size(); i++ ) {\
+          s = std::string(basename()) + "_thread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          handle = sc_spawn((LIST)[i], s.c_str(), &opts); \
+          join_any.add_process(handle); \
+          procs.push_back(handle); \
+  } \
+  join_any.wait(); \
+  for ( unsigned int i = 0; i < procs.size(); i++ ) {\
+          procs[i].kill(SC_INCLUDE_DESCENDANTS); \
   }\
 }
 
@@ -326,17 +384,42 @@ class sc_join_any : ::sc_core::sc_join {
   sc_core::sc_spawn_options opts;\
   std::string s = ""; \
   for ( unsigned int i = 0; i < sizeof(forkees)/sizeof(std::function<void(void)>); i++ ) {\
-          s = std::string(basename()) + "_thread_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          s = std::string(basename()) + "_thread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
           sc_process_handle handle = sc_spawn(forkees[i], s.c_str(), &opts); \
   } \
 }
+
+#define SC_FORK_JOIN_NONE(LIST) \
+{\
+  sc_core::sc_spawn_options opts;\
+  std::string s = ""; \
+  for ( unsigned int i = 0; i < (LIST).size(); i++ ) {\
+          s = std::string(basename()) + "_thread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          sc_process_handle handle = sc_spawn((LIST)[i], s.c_str(), &opts); \
+  } \
+}
+
 
 #define SC_CJOIN  }; \
   sc_core::sc_join           join; \
   std::string s = ""; \
   for ( unsigned int i = 0; i < sizeof(forkees)/sizeof(std::function<void(void)>); i++ ) {\
-          s = std::string(basename()) + "_cthread_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          s = std::string(basename()) + "_cthread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
           sc_process_handle handle = sc_spawn(forkees[i], s.c_str(), &opts); \
+          join.add_process(handle); \
+  } \
+  join.wait_clocked(); \
+}
+
+#define SC_CFORK_CJOIN(LIST, edge) \
+{\
+  sc_core::sc_join           join; \
+  std::string s = ""; \
+  sc_core::sc_spawn_options opts; \
+  opts.set_sensitivity(&(edge)); \
+  for ( unsigned int i = 0; i < (LIST).size(); i++ ) {\
+          s = std::string(basename()) + "_cthread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          sc_process_handle handle = sc_spawn((LIST)[i], s.c_str(), &opts); \
           join.add_process(handle); \
   } \
   join.wait_clocked(); \
@@ -346,8 +429,22 @@ class sc_join_any : ::sc_core::sc_join {
   sc_core::sc_join_any           join_any; \
   std::string s = ""; \
   for ( unsigned int i = 0; i < sizeof(forkees)/sizeof(std::function<void(void)>); i++ ) {\
-          s = std::string(basename()) + "_cthread_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          s = std::string(basename()) + "_cthread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
           sc_process_handle handle = sc_spawn(forkees[i], s.c_str(), &opts); \
+          join_any.add_process(handle); \
+  } \
+  join_any.wait_clocked(); \
+}
+
+#define SC_CFORK_CJOIN_ANY(LIST, edge) \
+{\
+  sc_core::sc_join_any           join_any; \
+  std::string s = ""; \
+  sc_core::sc_spawn_options opts; \
+  opts.set_sensitivity(&(edge)); \
+  for ( unsigned int i = 0; i < (LIST).size(); i++ ) {\
+          s = std::string(basename()) + "_cthread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          sc_process_handle handle = sc_spawn((LIST)[i], s.c_str(), &opts); \
           join_any.add_process(handle); \
   } \
   join_any.wait_clocked(); \
@@ -356,25 +453,60 @@ class sc_join_any : ::sc_core::sc_join {
 #define SC_CJOIN_FIRST  }; \
   sc_core::sc_join_any           join_any; \
   std::string s = ""; \
-  std::vector<sc_process_handle*> procs; \
+  sc_process_handle handle; \
+  std::vector<sc_process_handle> procs; \
   for ( unsigned int i = 0; i < sizeof(forkees)/sizeof(std::function<void(void)>); i++ ) {\
-          s = std::string(basename()) + "_cthread_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
-          sc_process_handle handle = sc_spawn(forkees[i], s.c_str(), &opts); \
+          s = std::string(basename()) + "_cthread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          handle = sc_spawn(forkees[i], s.c_str(), &opts); \
           join_any.add_process(handle); \
-          procs.push_back(&handle); \
+          procs.push_back(handle); \
   } \
   join_any.wait_clocked(); \
   for ( unsigned int i = 0; i < sizeof(forkees)/sizeof(std::function<void(void)>); i++ ) {\
-          procs[i]->kill(SC_INCLUDE_DESCENDANTS); \
+          procs[i].kill(SC_INCLUDE_DESCENDANTS); \
   }\
 }
+
+#define SC_CFORK_CJOIN_FIRST(LIST, edge) \
+{\
+  sc_core::sc_join_any           join_any; \
+  std::string s = ""; \
+  sc_core::sc_spawn_options opts; \
+  opts.set_sensitivity(&(edge)); \
+  sc_process_handle handle; \
+  std::vector<sc_process_handle> procs; \
+  for ( unsigned int i = 0; i < (LIST).size(); i++ ) {\
+          s = std::string(basename()) + "_cthread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          handle = sc_spawn((LIST)[i], s.c_str(), &opts); \
+          join_any.add_process(handle); \
+          procs.push_back(handle); \
+  } \
+  join_any.wait_clocked(); \
+  for ( unsigned int i = 0; i < procs.size(); i++ ) {\
+          procs[i].kill(SC_INCLUDE_DESCENDANTS); \
+  }\
+}
+
 
 #define SC_CJOIN_NONE  }; \
   std::string s = ""; \
   for ( unsigned int i = 0; i < sizeof(forkees)/sizeof(std::function<void(void)>); i++ ) {\
-          s = std::string(basename()) + "_cthread_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          s = std::string(basename()) + "_cthread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
           sc_process_handle handle = sc_spawn(forkees[i], s.c_str(), &opts); \
   } \
 }
+
+#define SC_CFORK_CJOIN_NONE(LIST, edge) \
+{\
+  std::string s = ""; \
+  sc_core::sc_spawn_options opts; \
+  opts.set_sensitivity(&(edge)); \
+  for ( unsigned int i = 0; i < (LIST).size(); i++ ) {\
+          s = std::string(basename()) + "_cthread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__) + "_" + std::to_string(i); \
+          sc_process_handle handle = sc_spawn((LIST)[i], s.c_str(), &opts); \
+  } \
+}
+
+#define SC_SPAWN(lambda) sc_spawn(lambda, (std::string(basename()) + "_cthread_" + sc_thread_id_gen::get_id() + "_" + std::to_string(__LINE__)).c_str(), &sc_core::default_spawn_opts)
 
 #endif // __SC_PROCESS_UTILS_HPP__
