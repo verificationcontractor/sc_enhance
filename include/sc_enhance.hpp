@@ -68,9 +68,18 @@ void name() { \
 #define SC_METHOD_IMPLEMENT(name) \
 name ## _method_wrapper.run = [this]()
 
+#define SC_METHOD_DECL(name, lambda) \
+sc_method_wrapper<SC_CURRENT_USER_MODULE> name ## _method_wrapper { \
+    #name, \
+    this, \
+    &SC_CURRENT_USER_MODULE::name, \
+    (lambda), nullptr}; \
+    void name()
+
+#define SC_METHOD_DECL_EMPTY(name, lambda) SC_METHOD_DECL(name,lambda);
 
 // ********************
-// * SC_PROCESS wrapper
+// * SC_THREAD wrapper
 // ********************
 template <class T>
 struct sc_thread_wrapper {
@@ -130,10 +139,18 @@ void name() { \
 #define SC_THREAD_IMPLEMENT(name) \
 name ## _thread_wrapper.run = [this]()
 
+#define SC_THREAD_DECL(name, lambda) \
+sc_thread_wrapper<SC_CURRENT_USER_MODULE> name ## _thread_wrapper { \
+    #name, \
+    this, \
+    &SC_CURRENT_USER_MODULE::name, \
+    (lambda), nullptr}; \
+    void name()
 
+#define SC_THREAD_DECL_EMPTY(name, lambda) SC_THREAD_DECL(name,lambda);
 
 // ********************
-// * SC_CPROCESS wrapper
+// * SC_CTHREAD wrapper
 // ********************
 template <class T>
 struct sc_cthread_wrapper {
@@ -192,6 +209,18 @@ void name() { \
 
 #define SC_CTHREAD_IMPLEMENT(name) \
 name ## _cthread_wrapper.run = [this]()
+
+#define SC_CTHREAD_DECL(name, edge) \
+sc_cthread_wrapper<SC_CURRENT_USER_MODULE> name ## _cthread_wrapper { \
+    #name, \
+    this, \
+    &SC_CURRENT_USER_MODULE::name, \
+    [this]() { \
+    this->sensitive.operator() ( name ## _cthread_wrapper.handle, (edge) ); \
+}, nullptr }; \
+void name()
+
+#define SC_CTHREAD_DECL_EMPTY(name, edge) SC_CTHREAD_DECL(name, edge);
 
 // Declaration utilities, use together with SC_HAS_PROCESS
 #define SC_DECLARE_UTILS(name) \
