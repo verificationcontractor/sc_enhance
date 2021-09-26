@@ -1,0 +1,66 @@
+Counter started
+Received value 0
+Received value 1
+Received value 2
+Received value 3
+Received value 4
+Received value 5
+Received value 6
+Received value 7
+Received value 8
+Received value 9
+Received value 10
+Counter reset
+Counter started
+Received value 1
+Received value 2
+Received value 3
+Received value 4
+Received value 5
+Received value 6
+Received value 7
+Received value 8
+Received value 9
+Received value 10
+Counter reset
+Counter started
+Received value 1
+Received value 2
+Received value 3
+Received value 4
+Received value 5
+Received value 6
+Received value 7
+Received value 8
+Received value 9
+Received value 10
+Counter reset
+Counter started
+Received value 1
+Received value 2
+Received value 3
+Received value 4
+Received value 5
+Received value 6
+Received value 7
+Received value 8
+Received value 9
+Received value 10
+Counter reset
+Counter started
+Received value 1
+Received value 2
+Received value 3
+Received value 4
+Received value 5
+Received value 6
+Received value 7
+Received value 8
+Received value 9
+Received value 10
+Counter reset
+Counter started
+Received value 1
+Counter stopped
+
+Info: /OSCI/SystemC: Simulation stopped by user.

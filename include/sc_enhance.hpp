@@ -6,6 +6,10 @@
 #include <functional>
 #include <vector>
 
+#ifndef SCE_EXCLUDE_MP
+#include "sc_method_ports.hpp"
+#endif
+
 // *******************
 // * SC_METHOD wrapper
 // *******************
