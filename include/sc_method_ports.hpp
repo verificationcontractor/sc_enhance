@@ -45,13 +45,20 @@ struct sc_simple_in_method_port {
 // sc_simple_out_method_port - sends a method call
 template<class T> 
 struct sc_simple_out_method_port {
+  private:
+  sc_simple_in_method_port<T>* other = NULL;
 
+  public:
   void connect(sc_simple_in_method_port<T>& other) {
     this->other = &other;
   }
 
   template<typename ...ArgTypes>
+#if __cplusplus > 201103L
   auto operator()(ArgTypes&& ...args) {
+#else
+  auto operator()(ArgTypes&& ...args) -> decltype(this->other->call(std::forward<ArgTypes>(args)...)) {
+#endif
     if(!is_connected()) throw std::runtime_error("Error from sc_simple_out_method_port<>::operator() - Port not connected.");
     if(other->call == nullptr) throw std::runtime_error("Error from sc_simple_out_method_port<>::operator() - Lambda of connected sc_simple_in_method_port is null.");
     return other->call(std::forward<ArgTypes>(args)...);
@@ -61,10 +68,9 @@ struct sc_simple_out_method_port {
     return other != NULL;
   }
 
-  private:
-  sc_simple_in_method_port<T>* other = NULL;
 };
 
+#if __cplusplus > 201103L
 // sc_simple_forward_method_port - receives a method call and forwards it on a sc_simple_out_method_port
 template<class T>
 struct sc_simple_forward_method_port:public sc_simple_in_method_port<T> {
@@ -81,6 +87,7 @@ struct sc_simple_forward_method_port:public sc_simple_in_method_port<T> {
   }
 
 };
+#endif
 
 
 //////////////////////////////////
@@ -153,6 +160,10 @@ struct sc_out_method_port_base:sc_method_port_base {
 template<class T>
 struct sc_out_method_port:sc_out_method_port_base {
 
+  private:
+  sc_in_method_port<T>* other = NULL;
+  
+  public:
   sc_out_method_port(std::string name, sc_core::sc_module* parent):sc_out_method_port_base(name) {
     this->parent = parent;
     sc_method_port_db::out_method_ports[parent][name] = this;
@@ -174,7 +185,11 @@ struct sc_out_method_port:sc_out_method_port_base {
   }
 
   template<typename ...ArgTypes>
+#if __cplusplus > 201103L
   auto operator()(ArgTypes&& ...args) {
+#else
+  auto operator()(ArgTypes&& ...args) -> decltype(this->other->call(std::forward<ArgTypes>(args)...)) {
+#endif
     if(!is_connected()) {
       throw std::runtime_error("Error from sc_out_method_port<>::operator(): Port " + get_full_name() + " not connected.");
     }
@@ -186,11 +201,9 @@ struct sc_out_method_port:sc_out_method_port_base {
     return other != NULL;
   }
 
-  private:
-  sc_in_method_port<T>* other = NULL;
-
 };
 
+#if __cplusplus > 201103L
 template<class T>
 struct sc_forward_method_port:public sc_simple_in_method_port<T> {
   sc_out_method_port<T> forward_port_out { "forward_port_out" };
@@ -209,6 +222,7 @@ struct sc_forward_method_port:public sc_simple_in_method_port<T> {
   }
 
 };
+#endif
 
 // TODO add thread safe ports
 

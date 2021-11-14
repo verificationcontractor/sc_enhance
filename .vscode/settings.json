@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "systemc": "cpp"
+        "systemc": "cpp",
+        "functional": "cpp",
+        "stdexcept": "cpp"
     }
 }
